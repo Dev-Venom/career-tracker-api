@@ -125,6 +125,7 @@ public class Application {
 	public String setAppliedDate(LocalDate appliedDate) {
 		this.appliedDate = appliedDate;
 		return companyName;
+
 	}
 
 	public String getJobUrl() {

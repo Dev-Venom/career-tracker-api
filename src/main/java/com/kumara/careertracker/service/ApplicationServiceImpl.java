@@ -13,6 +13,7 @@ import com.kumara.careertracker.entity.User;
 import com.kumara.careertracker.enums.ApplicationStatus;
 import com.kumara.careertracker.exception.ResourceNotFoundException;
 import com.kumara.careertracker.repository.ApplicationRepository;
+import com.kumara.careertracker.repository.InterviewRepository;
 import com.kumara.careertracker.repository.UserRepository;
 
 @Service
@@ -25,6 +26,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 	private ApplicationRepository applicationRepository;
 
 	private final NotificationService notificationService;
+
+	@Autowired
+	private InterviewRepository interviewRepository;
 
 	@Override
 	public ApplicationResponseDto createApplication(ApplicationRequestDto dto, String email) {
@@ -72,6 +76,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 			throw new RuntimeException("You cannot delete this application");
 		}
+
+		interviewRepository.findByApplication(app).ifPresent(interviewRepository::delete);
 
 		applicationRepository.delete(app);
 	}
