@@ -74,7 +74,8 @@ public class InterviewServiceImpl implements InterviewService {
 
 		User currentUser = getCurrentUser();
 
-		List<Interview> interviews = interviewRepository.findByApplication_User_Id(currentUser.getId());
+		List<Interview> interviews = interviewRepository
+				.findByApplication_User_EmailOrderByInterviewDateAscInterviewTimeAsc(currentUser.getEmail());
 
 		return interviews.stream().map(this::mapToDto).toList();
 	}
@@ -84,7 +85,8 @@ public class InterviewServiceImpl implements InterviewService {
 
 		User currentUser = getCurrentUser();
 
-		List<Interview> interviews = interviewRepository.findByApplication_User_Id(currentUser.getId());
+		List<Interview> interviews = interviewRepository
+				.findByApplication_User_EmailOrderByInterviewDateAscInterviewTimeAsc(currentUser.getEmail());
 
 		return interviews.stream().filter(interview -> !interview.getInterviewDate().isBefore(LocalDate.now()))
 				.sorted((i1, i2) -> i1.getInterviewDate().compareTo(i2.getInterviewDate())).map(this::mapToDto)
