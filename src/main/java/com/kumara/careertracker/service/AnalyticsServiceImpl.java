@@ -1,9 +1,15 @@
 package com.kumara.careertracker.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.kumara.careertracker.dto.ActivityPointDto;
 import com.kumara.careertracker.dto.AnalyticsResponseDto;
 import com.kumara.careertracker.dto.ApplicationStatusAnalyticsDto;
 import com.kumara.careertracker.dto.CareerInsightDto;
@@ -32,6 +38,22 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 		User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
 		List<Application> applications = applicationRepository.findByUser_Id(user.getId());
+
+		Map<LocalDate, Long> activityMap = applications.stream()
+				.collect(Collectors.groupingBy(Application::getAppliedDate, TreeMap::new, Collectors.counting()));
+
+		List<ActivityPointDto> activityPoints = new ArrayList<>();
+
+		for (Map.Entry<LocalDate, Long> entry : activityMap.entrySet()) {
+
+			ActivityPointDto point = new ActivityPointDto();
+
+			point.setDate(entry.getKey());
+
+			point.setCount(entry.getValue());
+
+			activityPoints.add(point);
+		}
 
 		CareerJourneyDto journey = new CareerJourneyDto();
 
@@ -68,6 +90,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 		dto.setCareerInsight(insight);
 
 		dto.setApplicationStatus(statusAnalytics);
+
+		dto.setApplicationActivity(activityPoints);
 
 		return dto;
 	}

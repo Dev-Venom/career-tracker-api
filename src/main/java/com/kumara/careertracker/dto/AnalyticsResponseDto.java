@@ -10,13 +10,7 @@ public class AnalyticsResponseDto {
 
 	private List<ActivityPointDto> applicationActivity;
 
-	public List<ActivityPointDto> getApplicationActivity() {
-		return applicationActivity;
-	}
-
-	public void setApplicationActivity(List<ActivityPointDto> applicationActivity) {
-		this.applicationActivity = applicationActivity;
-	}
+	private ApplicationStatusAnalyticsDto applicationStatus;
 
 	public CareerJourneyDto getCareerJourney() {
 		return careerJourney;
@@ -34,4 +28,21 @@ public class AnalyticsResponseDto {
 		this.careerInsight = careerInsight;
 	}
 
+	public List<ActivityPointDto> getApplicationActivity() {
+		return applicationActivity;
+	}
+
+	public void setApplicationActivity(List<ActivityPointDto> applicationActivity) {
+
+		this.applicationActivity = applicationActivity;
+	}
+
+	public ApplicationStatusAnalyticsDto getApplicationStatus() {
+		return applicationStatus;
+	}
+
+	public void setApplicationStatus(ApplicationStatusAnalyticsDto applicationStatus) {
+
+		this.applicationStatus = applicationStatus;
+	}
 }

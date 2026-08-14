@@ -6,15 +6,6 @@ public class ApplicationStatusAnalyticsDto {
 	private long interview;
 	private long offer;
 	private long rejected;
-	private ApplicationStatusAnalyticsDto applicationStatus;
-
-	public ApplicationStatusAnalyticsDto getApplicationStatus() {
-		return applicationStatus;
-	}
-
-	public void setApplicationStatus(ApplicationStatusAnalyticsDto applicationStatus) {
-		this.applicationStatus = applicationStatus;
-	}
 
 	public long getApplied() {
 		return applied;

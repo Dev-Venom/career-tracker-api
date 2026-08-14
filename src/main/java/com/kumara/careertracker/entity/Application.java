@@ -122,9 +122,8 @@ public class Application {
 		return appliedDate;
 	}
 
-	public String setAppliedDate(LocalDate appliedDate) {
+	public void setAppliedDate(LocalDate appliedDate) {
 		this.appliedDate = appliedDate;
-		return companyName;
 
 	}
 

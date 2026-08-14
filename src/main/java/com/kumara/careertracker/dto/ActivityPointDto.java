@@ -1,32 +1,34 @@
 package com.kumara.careertracker.dto;
 
+import java.time.LocalDate;
+
 public class ActivityPointDto {
 
-	private String label;
+	private LocalDate date;
 
-	private int value;
+	private long count;
 
 	public ActivityPointDto() {
 	}
 
-	public ActivityPointDto(String label, int value) {
-		this.label = label;
-		this.value = value;
+	public ActivityPointDto(LocalDate date, long count) {
+		this.date = date;
+		this.count = count;
 	}
 
-	public String getLabel() {
-		return label;
+	public LocalDate getDate() {
+		return date;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
+	public void setDate(LocalDate date) {
+		this.date = date;
 	}
 
-	public int getValue() {
-		return value;
+	public long getCount() {
+		return count;
 	}
 
-	public void setValue(int value) {
-		this.value = value;
+	public void setCount(long count) {
+		this.count = count;
 	}
 }
