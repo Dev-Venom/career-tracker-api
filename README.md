@@ -147,3 +147,16 @@ Spring Security
   |
   v
 Protected Controller
+```
+
+## API MODULES
+
+| Module         | Responsibility                       |
+| -------------- | ------------------------------------ |
+| Authentication | Login and token-based authentication |
+| Users          | User-related operations              |
+| Applications   | Job application management           |
+| Interviews     | Interview management                 |
+| Notifications  | Notification management              |
+| Analytics      | Career analytics                     |
+| Dashboard      | Aggregated career-tracking data      |
