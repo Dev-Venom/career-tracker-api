@@ -116,3 +116,34 @@ Repository Layer
   |
   v
 MySQL Database
+```
+
+##Authentication
+
+Authentication is handled separately through Spring Security and the JWT authentication filter.
+
+```text
+
+Client
+  |
+  | Authentication Request
+  v
+Auth Controller
+  |
+  v
+Authentication
+  |
+  v
+JWT Token
+  |
+  v
+Authenticated API Request
+  |
+  v
+JWT Filter
+  |
+  v
+Spring Security
+  |
+  v
+Protected Controller
