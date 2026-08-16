@@ -118,7 +118,7 @@ Repository Layer
 MySQL Database
 ```
 
-##Authentication
+## Authentication
 
 Authentication is handled separately through Spring Security and the JWT authentication filter.
 
