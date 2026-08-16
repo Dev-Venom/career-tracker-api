@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kumara.careertracker.dto.LoginRequestDto;
 import com.kumara.careertracker.dto.LoginResponseDto;
+import com.kumara.careertracker.dto.UserRequestDto;
 import com.kumara.careertracker.dto.UserResponseDto;
 import com.kumara.careertracker.entity.User;
 import com.kumara.careertracker.service.UserService;
@@ -45,14 +46,9 @@ public class UserController {
 		return null;
 	}
 
-	@PostMapping("/bulk")
-	public List<User> createUsers(@Valid @RequestBody List<User> users) {
-		return userService.saveAll(users);
-	}
-
 	@PostMapping
-	public User createUser(@Valid @RequestBody User user) {
-		return userService.save(user);
+	public UserResponseDto createUser(@Valid @RequestBody UserRequestDto dto) {
+		return userService.createUser(dto);
 	}
 
 	@GetMapping
@@ -67,7 +63,7 @@ public class UserController {
 
 	}
 
-	@GetMapping("/id{id}")
+	@GetMapping("/{id}")
 	public UserResponseDto getUserById(@PathVariable Long id) {
 
 		User user = userService.findById(id);

@@ -1,6 +1,5 @@
 package com.kumara.careertracker.controller;
 
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,9 +65,10 @@ public class ApplicationController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<ApplicationResponseDto> getApplicationById(@PathVariable Long id) {
+	public ResponseEntity<ApplicationResponseDto> getApplicationById(@PathVariable Long id,
+			Authentication authentication) {
 
-		return ResponseEntity.ok(applicationService.getApplicationById(id));
+		return ResponseEntity.ok(applicationService.getApplicationById(id, authentication.getName()));
 	}
 
 	@PutMapping("/{id}")
@@ -114,42 +114,25 @@ public class ApplicationController {
 		return ResponseEntity.ok(applicationService.updateStatus(id, dto.getStatus(), email));
 	}
 
-	@GetMapping("/whoami")
-	public List<ApplicationResponseDto> getMyApplications(Authentication authentication) {
+	@GetMapping("/stats/monthly")
+	public Map<String, Integer> getMonthlyApplications(Authentication authentication) {
 
 		String email = authentication.getName();
 
-		System.out.println("EMAIL FROM JWT = " + email);
-
 		User user = userService.findByEmail(email);
 
-		System.out.println("USER FOUND ID = " + user.getId());
-
-		List<ApplicationResponseDto> result = applicationService.getApplicationsByUser(user.getId());
-
-		System.out.println("APPLICATION COUNT = " + result.size());
-
-		return result;
-
-	}
-
-	@GetMapping("/stats/monthly")
-	public Map<String, Integer> getMonthlyApplications() {
-
-		List<Application> apps = applicationRepository.findAll();
+		List<Application> apps = applicationRepository.findByUser_Id(user.getId());
 
 		Map<String, Integer> result = new HashMap<>();
 
 		for (Application app : apps) {
 
-			if (app.getStatus() != null) {
+			if (app.getAppliedDate() != null) {
 
-				String month = app.setAppliedDate(LocalDate.now());
+				String month = app.getAppliedDate().getMonth().toString();
 
 				result.put(month, result.getOrDefault(month, 0) + 1);
-
 			}
-
 		}
 
 		return result;

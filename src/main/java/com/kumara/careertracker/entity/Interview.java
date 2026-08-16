@@ -32,7 +32,7 @@ public class Interview {
 	private String notes;
 
 	@OneToOne
-	@JoinColumn(name = "application_id")
+	@JoinColumn(name = "application_id", unique = true)
 	private Application application;
 
 	public Interview() {

@@ -18,7 +18,11 @@ import com.kumara.careertracker.dto.RefreshRequest;
 @RequestMapping("/auth")
 public class AuthController {
 
-	private final JwtUtil jwtUtil = new JwtUtil();
+	private final JwtUtil jwtUtil;
+
+	public AuthController(JwtUtil jwtUtil) {
+		this.jwtUtil = jwtUtil;
+	}
 
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> login(@RequestParam String username) {

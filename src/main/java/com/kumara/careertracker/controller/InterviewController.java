@@ -29,17 +29,18 @@ public class InterviewController {
 	}
 
 	@PostMapping
-	public ResponseEntity<InterviewResponseDto> scheduleInterview(@RequestBody InterviewRequestDto request) {
+	public ResponseEntity<InterviewResponseDto> scheduleInterview(@RequestBody InterviewRequestDto request,
+			Authentication authentication) {
 
-		InterviewResponseDto interview = interviewService.scheduleInterview(request);
+		InterviewResponseDto interview = interviewService.scheduleInterview(request, authentication.getName());
 
 		return new ResponseEntity<>(interview, HttpStatus.CREATED);
 	}
 
 	@GetMapping
-	public ResponseEntity<List<InterviewResponseDto>> getMyInterviews() {
+	public ResponseEntity<List<InterviewResponseDto>> getMyInterviews(Authentication authentication) {
 
-		return ResponseEntity.ok(interviewService.getMyInterviews());
+		return ResponseEntity.ok(interviewService.getMyInterviews(authentication.getName()));
 	}
 
 	@GetMapping("/upcoming")

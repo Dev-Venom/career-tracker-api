@@ -45,7 +45,7 @@ public class Application {
 	private String notes;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
 	@Column(name = "job_platform")
