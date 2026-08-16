@@ -166,4 +166,4 @@ Protected Controller
 
 Career Tracker uses a separate React frontend application for the user interface.
 
-Frontend repository : https://github.com/Dev-Venom/career-tracker-frontend
+Frontend repository : https://github.com/Dev-Venom/career-tracker-ui
