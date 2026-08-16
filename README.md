@@ -160,3 +160,10 @@ Protected Controller
 | Notifications  | Notification management              |
 | Analytics      | Career analytics                     |
 | Dashboard      | Aggregated career-tracking data      |
+
+
+## RELATED FRONTEND
+
+Career Tracker uses a separate React frontend application for the user interface.
+
+Frontend repository : https://github.com/Dev-Venom/career-tracker-frontend
