@@ -45,7 +45,7 @@ public class Application {
 	private String notes;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
 	@Column(name = "job_platform")
@@ -122,9 +122,9 @@ public class Application {
 		return appliedDate;
 	}
 
-	public String setAppliedDate(LocalDate appliedDate) {
+	public void setAppliedDate(LocalDate appliedDate) {
 		this.appliedDate = appliedDate;
-		return companyName;
+
 	}
 
 	public String getJobUrl() {

@@ -3,204 +3,132 @@ package com.kumara.careertracker.service;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.kumara.careertracker.dto.InterviewRequestDto;
 import com.kumara.careertracker.dto.InterviewResponseDto;
 import com.kumara.careertracker.entity.Application;
 import com.kumara.careertracker.entity.Interview;
-import com.kumara.careertracker.entity.User;
+import com.kumara.careertracker.exception.ResourceNotFoundException;
 import com.kumara.careertracker.repository.ApplicationRepository;
 import com.kumara.careertracker.repository.InterviewRepository;
-import com.kumara.careertracker.repository.UserRepository;
 
 @Service
 public class InterviewServiceImpl implements InterviewService {
 
 	private final InterviewRepository interviewRepository;
 	private final ApplicationRepository applicationRepository;
-	private final UserRepository userRepository;
-	private final NotificationService notificationService;
 
-	public InterviewServiceImpl(InterviewRepository interviewRepository, ApplicationRepository applicationRepository,
-			UserRepository userRepository, NotificationService notificationService) {
+	public InterviewServiceImpl(InterviewRepository interviewRepository, ApplicationRepository applicationRepository) {
 
 		this.interviewRepository = interviewRepository;
 		this.applicationRepository = applicationRepository;
-		this.userRepository = userRepository;
-		this.notificationService = notificationService;
 	}
 
 	@Override
-	public InterviewResponseDto scheduleInterview(InterviewRequestDto request) {
+	public InterviewResponseDto scheduleInterview(InterviewRequestDto request, String email) {
 
-		User currentUser = getCurrentUser();
+		Application application = getUserApplication(request.getApplicationId(), email);
 
-		Application application = applicationRepository.findById(request.getApplicationId())
-				.orElseThrow(() -> new RuntimeException("Application not found"));
-
-		if (!application.getUser().getId().equals(currentUser.getId())) {
-			throw new RuntimeException("Unauthorized");
+		if (interviewRepository.findByApplication(application).isPresent()) {
+			throw new RuntimeException("An interview already exists for this application");
 		}
 
 		Interview interview = new Interview();
 
+		interview.setInterviewDate(request.getInterviewDate());
+		interview.setInterviewTime(request.getInterviewTime());
+		interview.setInterviewer(request.getInterviewer());
+		interview.setMeetingLink(request.getMeetingLink());
+		interview.setRound(request.getRound());
+		interview.setNotes(request.getNotes());
 		interview.setApplication(application);
 
-		interview.setInterviewDate(request.getInterviewDate());
-
-		interview.setInterviewTime(request.getInterviewTime());
-
-		interview.setInterviewer(request.getInterviewer());
-
-		interview.setMeetingLink(request.getMeetingLink());
-
-		interview.setRound(request.getRound());
-
-		interview.setNotes(request.getNotes());
-
 		Interview savedInterview = interviewRepository.save(interview);
-
-		notificationService.createNotification(currentUser, "Interview Scheduled",
-				"Interview with " + application.getCompanyName() + " scheduled on " + interview.getInterviewDate(),
-				"INTERVIEW");
 
 		return mapToDto(savedInterview);
 	}
 
 	@Override
-	public List<InterviewResponseDto> getMyInterviews() {
+	public List<InterviewResponseDto> getMyInterviews(String email) {
 
-		User currentUser = getCurrentUser();
-
-		List<Interview> interviews = interviewRepository.findByApplication_User_Id(currentUser.getId());
-
-		return interviews.stream().map(this::mapToDto).toList();
-	}
-
-	@Override
-	public List<InterviewResponseDto> getUpcomingInterviews() {
-
-		User currentUser = getCurrentUser();
-
-		List<Interview> interviews = interviewRepository.findByApplication_User_Id(currentUser.getId());
-
-		return interviews.stream().filter(interview -> !interview.getInterviewDate().isBefore(LocalDate.now()))
-				.sorted((i1, i2) -> i1.getInterviewDate().compareTo(i2.getInterviewDate())).map(this::mapToDto)
-				.toList();
-	}
-
-	@Override
-	public InterviewResponseDto updateInterview(Long id, InterviewRequestDto request) {
-
-		User currentUser = getCurrentUser();
-
-		Interview interview = interviewRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Interview not found"));
-
-		if (!interview.getApplication().getUser().getId().equals(currentUser.getId())) {
-
-			throw new RuntimeException("Unauthorized");
-		}
-
-		interview.setInterviewDate(request.getInterviewDate());
-
-		interview.setInterviewTime(request.getInterviewTime());
-
-		interview.setInterviewer(request.getInterviewer());
-
-		interview.setMeetingLink(request.getMeetingLink());
-
-		interview.setRound(request.getRound());
-
-		interview.setNotes(request.getNotes());
-
-		Interview updated = interviewRepository.save(interview);
-
-		return mapToDto(updated);
-	}
-
-	@Override
-	public void deleteInterview(Long id) {
-
-		User currentUser = getCurrentUser();
-
-		Interview interview = interviewRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Interview not found"));
-
-		if (!interview.getApplication().getUser().getId().equals(currentUser.getId())) {
-
-			throw new RuntimeException("Unauthorized");
-		}
-
-		interviewRepository.delete(interview);
+		return interviewRepository.findByApplication_User_EmailOrderByInterviewDateAscInterviewTimeAsc(email).stream()
+				.map(this::mapToDto).toList();
 	}
 
 	@Override
 	public List<InterviewResponseDto> getUpcomingInterviews(String email) {
 
 		return interviewRepository.findByApplication_User_EmailOrderByInterviewDateAscInterviewTimeAsc(email).stream()
-				.filter(interview -> !interview.getInterviewDate().isBefore(LocalDate.now())).map(this::mapToDto)
-				.toList();
+				.filter(interview -> interview.getInterviewDate() != null
+						&& !interview.getInterviewDate().isBefore(LocalDate.now()))
+				.map(this::mapToDto).toList();
 	}
 
 	@Override
 	public InterviewResponseDto getInterviewById(Long id, String email) {
 
 		Interview interview = interviewRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Interview not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Interview not found"));
 
-		if (!interview.getApplication().getUser().getEmail().equals(email)) {
-
-			throw new RuntimeException("Unauthorized");
-		}
+		verifyOwnership(interview, email);
 
 		return mapToDto(interview);
 	}
 
 	@Override
-	public InterviewResponseDto updateInterview(Long id, InterviewRequestDto dto, String email) {
+	public InterviewResponseDto updateInterview(Long id, InterviewRequestDto request, String email) {
 
 		Interview interview = interviewRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Interview not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Interview not found"));
 
-		if (!interview.getApplication().getUser().getEmail().equals(email)) {
+		verifyOwnership(interview, email);
 
-			throw new RuntimeException("Unauthorized");
-		}
+		Application application = getUserApplication(request.getApplicationId(), email);
 
-		interview.setInterviewDate(dto.getInterviewDate());
-		interview.setInterviewTime(dto.getInterviewTime());
-		interview.setInterviewer(dto.getInterviewer());
-		interview.setRound(dto.getRound());
-		interview.setMeetingLink(dto.getMeetingLink());
-		interview.setNotes(dto.getNotes());
+		interview.setInterviewDate(request.getInterviewDate());
+		interview.setInterviewTime(request.getInterviewTime());
+		interview.setInterviewer(request.getInterviewer());
+		interview.setMeetingLink(request.getMeetingLink());
+		interview.setRound(request.getRound());
+		interview.setNotes(request.getNotes());
+		interview.setApplication(application);
 
-		interviewRepository.save(interview);
+		Interview updatedInterview = interviewRepository.save(interview);
 
-		return mapToDto(interview);
+		return mapToDto(updatedInterview);
 	}
 
 	@Override
 	public void deleteInterview(Long id, String email) {
 
 		Interview interview = interviewRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Interview not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Interview not found"));
 
-		if (!interview.getApplication().getUser().getEmail().equals(email)) {
-
-			throw new RuntimeException("Unauthorized");
-		}
+		verifyOwnership(interview, email);
 
 		interviewRepository.delete(interview);
 	}
 
-	private User getCurrentUser() {
+	private Application getUserApplication(Long applicationId, String email) {
 
-		String email = SecurityContextHolder.getContext().getAuthentication().getName();
+		Application application = applicationRepository.findById(applicationId)
+				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
-		return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+		if (!application.getUser().getEmail().equals(email)) {
+			throw new RuntimeException("You cannot access this application");
+		}
+
+		return application;
+	}
+
+	private void verifyOwnership(Interview interview, String email) {
+
+		if (interview.getApplication() == null || interview.getApplication().getUser() == null
+				|| !interview.getApplication().getUser().getEmail().equals(email)) {
+
+			throw new RuntimeException("You cannot access this interview");
+		}
 	}
 
 	private InterviewResponseDto mapToDto(Interview interview) {
@@ -208,9 +136,16 @@ public class InterviewServiceImpl implements InterviewService {
 		InterviewResponseDto dto = new InterviewResponseDto();
 
 		dto.setId(interview.getId());
-		dto.setApplicationId(interview.getApplication().getId());
-		dto.setCompanyName(interview.getApplication().getCompanyName());
-		dto.setJobTitle(interview.getApplication().getJobTitle());
+
+		if (interview.getApplication() != null) {
+
+			Application application = interview.getApplication();
+
+			dto.setApplicationId(application.getId());
+			dto.setCompanyName(application.getCompanyName());
+			dto.setJobTitle(application.getJobTitle());
+		}
+
 		dto.setInterviewDate(interview.getInterviewDate());
 		dto.setInterviewTime(interview.getInterviewTime());
 		dto.setInterviewer(interview.getInterviewer());
@@ -220,5 +155,4 @@ public class InterviewServiceImpl implements InterviewService {
 
 		return dto;
 	}
-
 }

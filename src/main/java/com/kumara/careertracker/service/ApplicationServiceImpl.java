@@ -3,6 +3,7 @@ package com.kumara.careertracker.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.kumara.careertracker.dto.ApplicationRequestDto;
@@ -12,7 +13,9 @@ import com.kumara.careertracker.entity.Application;
 import com.kumara.careertracker.entity.User;
 import com.kumara.careertracker.enums.ApplicationStatus;
 import com.kumara.careertracker.exception.ResourceNotFoundException;
+import com.kumara.careertracker.exception.UnauthorizedResourceException;
 import com.kumara.careertracker.repository.ApplicationRepository;
+import com.kumara.careertracker.repository.InterviewRepository;
 import com.kumara.careertracker.repository.UserRepository;
 
 @Service
@@ -25,6 +28,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 	private ApplicationRepository applicationRepository;
 
 	private final NotificationService notificationService;
+
+	@Autowired
+	private InterviewRepository interviewRepository;
 
 	@Override
 	public ApplicationResponseDto createApplication(ApplicationRequestDto dto, String email) {
@@ -40,7 +46,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 		app.setJobType(dto.getJobType());
 		app.setStatus(dto.getStatus());
 		app.setSalary(dto.getSalary());
-		app.setAppliedDate(dto.getAppliedDate());
+		app.setAppliedDate(dto.getAppliedDate() != null ? dto.getAppliedDate() : java.time.LocalDate.now());
 		app.setJobPlatform(dto.getJobPlatform());
 		app.setJobUrl(dto.getJobUrl());
 		app.setNotes(dto.getNotes());
@@ -70,26 +76,34 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 		if (!app.getUser().getEmail().equals(email)) {
 
-			throw new RuntimeException("You cannot delete this application");
+			throw new UnauthorizedResourceException("You cannot delete this application");
 		}
+
+		interviewRepository.findByApplication(app).ifPresent(interviewRepository::delete);
 
 		applicationRepository.delete(app);
 	}
 
 	@Override
-	public ApplicationResponseDto getApplicationById(Long id) {
+	public ApplicationResponseDto getApplicationById(Long id, String email) {
 
 		Application app = applicationRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Application not found with id : " + id));
+				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+
+		if (!app.getUser().getEmail().equals(email)) {
+			throw new RuntimeException("You cannot access this application");
+		}
 
 		return mapToDto(app);
-
 	}
 
 	@Override
 	public List<ApplicationResponseDto> getApplicationsByStatus(ApplicationStatus status) {
 
-		List<Application> apps = applicationRepository.findByStatus(status);
+		User user = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName())
+				.orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+		List<Application> apps = applicationRepository.findByUser_IdAndStatus(user.getId(), status);
 
 		return apps.stream().map(this::mapToDto).toList();
 	}
@@ -136,7 +150,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 		if (!app.getUser().getEmail().equals(email)) {
 
-			throw new RuntimeException("You cannot update this application");
+			throw new UnauthorizedResourceException("You cannot update this application");
 		}
 
 		ApplicationStatus oldStatus = app.getStatus();
@@ -147,7 +161,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 		app.setJobType(dto.getJobType());
 		app.setStatus(dto.getStatus());
 		app.setSalary(dto.getSalary());
-		app.setAppliedDate(dto.getAppliedDate());
+		app.setAppliedDate(dto.getAppliedDate() != null ? dto.getAppliedDate() : java.time.LocalDate.now());
 		app.setJobUrl(dto.getJobUrl());
 		app.setNotes(dto.getNotes());
 		app.setJobPlatform(dto.getJobPlatform());

@@ -9,6 +9,7 @@ import com.kumara.careertracker.dto.NotificationResponseDto;
 import com.kumara.careertracker.entity.Notification;
 import com.kumara.careertracker.entity.User;
 import com.kumara.careertracker.exception.ResourceNotFoundException;
+import com.kumara.careertracker.exception.UnauthorizedResourceException;
 import com.kumara.careertracker.repository.NotificationRepository;
 import com.kumara.careertracker.repository.UserRepository;
 
@@ -44,7 +45,7 @@ public class NotificationServiceImpl implements NotificationService {
 				.orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
 
 		if (!notification.getUser().getEmail().equals(email)) {
-			throw new RuntimeException("Unauthorized");
+			throw new UnauthorizedResourceException("Unauthorized");
 		}
 
 		notification.setRead(true);

@@ -19,7 +19,7 @@ public interface ApplicationService {
 
 	List<ApplicationResponseDto> getApplicationsByStatus(ApplicationStatus status);
 
-	ApplicationResponseDto getApplicationById(Long id);
+	ApplicationResponseDto getApplicationById(Long id, String email);
 
 	DashboardResponseDto getDashboardStats(String email);
 

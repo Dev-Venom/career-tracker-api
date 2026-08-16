@@ -7,15 +7,9 @@ import com.kumara.careertracker.dto.InterviewResponseDto;
 
 public interface InterviewService {
 
-	InterviewResponseDto scheduleInterview(InterviewRequestDto request);
+	InterviewResponseDto scheduleInterview(InterviewRequestDto request, String email);
 
-	List<InterviewResponseDto> getMyInterviews();
-
-	List<InterviewResponseDto> getUpcomingInterviews();
-
-	InterviewResponseDto updateInterview(Long id, InterviewRequestDto request);
-
-	void deleteInterview(Long id);
+	List<InterviewResponseDto> getMyInterviews(String email);
 
 	List<InterviewResponseDto> getUpcomingInterviews(String email);
 

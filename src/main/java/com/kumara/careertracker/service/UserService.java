@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.kumara.careertracker.config.JwtUtil;
 import com.kumara.careertracker.dto.LoginRequestDto;
 import com.kumara.careertracker.dto.LoginResponseDto;
+import com.kumara.careertracker.dto.UserRequestDto;
 import com.kumara.careertracker.dto.UserResponseDto;
 import com.kumara.careertracker.entity.User;
 import com.kumara.careertracker.repository.UserRepository;
@@ -79,8 +80,6 @@ public class UserService {
 
 	public LoginResponseDto login(LoginRequestDto dto) {
 
-		System.out.println("EMAIL RECEIVED = " + dto.getEmail());
-
 		Optional<User> optionalUser = userRepository.findByEmail(dto.getEmail());
 
 		if (optionalUser.isEmpty()) {
@@ -99,12 +98,6 @@ public class UserService {
 
 		UserResponseDto userDto = convertToDTO(user);
 
-		System.out.println("========== USER DTO ==========");
-		System.out.println("ID    : " + userDto.getId());
-		System.out.println("NAME  : " + userDto.getName());
-		System.out.println("EMAIL : " + userDto.getEmail());
-		System.out.println("ROLE  : " + userDto.getRole());
-
 		LoginResponseDto response = new LoginResponseDto(token, "Login successful", userDto);
 
 		System.out.println("Response User = " + response.getUser());
@@ -118,6 +111,20 @@ public class UserService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
 		return convertToDTO(user);
+	}
+
+	public UserResponseDto createUser(UserRequestDto dto) {
+
+		User user = new User();
+
+		user.setName(dto.getName());
+		user.setEmail(dto.getEmail());
+		user.setPassword(passwordEncoder.encode(dto.getPassword()));
+		user.setRole(dto.getRole());
+
+		User savedUser = userRepository.save(user);
+
+		return convertToDTO(savedUser);
 	}
 
 }

@@ -3,7 +3,6 @@ package com.kumara.careertracker.config;
 import java.io.IOException;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,22 +19,22 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-	@Autowired
-	private JwtUtil jwtUtil;
+	private final JwtUtil jwtUtil;
+
+	public JwtFilter(JwtUtil jwtUtil) {
+		this.jwtUtil = jwtUtil;
+	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
-		if (request.getServletPath().equals("/users/login")) {
-
+		if (request.getServletPath().equals("/users/login") || request.getServletPath().equals("/auth/refresh")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 
 		String authHeader = request.getHeader("Authorization");
-
-		System.out.println("HEADER = " + authHeader);
 
 		String token = null;
 		String email = null;
@@ -57,7 +56,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 				return;
-
 			}
 		}
 
@@ -71,8 +69,6 @@ public class JwtFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authentication);
 			}
 		}
-
-		System.out.println("AUTH SET = " + SecurityContextHolder.getContext().getAuthentication());
 
 		filterChain.doFilter(request, response);
 	}
